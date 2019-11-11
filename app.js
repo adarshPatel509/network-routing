@@ -15,7 +15,7 @@ app.get('/*', function(req, res){
 
 //sotres client socket address
 let cleintsMap = {};
-let routingTable = "";
+let routingTable = {};
 
 io.on('connection', function(socket){
   console.log('New Connection!!');
@@ -47,8 +47,8 @@ io.on('connection', function(socket){
   socket.on("helloFromClient", function(nodeName, nodeDistance) {
       cleintsMap[nodeName] = {socket: socket, distance: nodeDistance};
       console.log("NewNode: ", nodeName, " at Distance: ", nodeDistance);
-      routingTable += `  ${nodeName}      ${nodeDistance} \n`;
-      console.log("Routing Table: \n", "NODE    DISTANCE\n", routingTable);
+      routingTable[nodeName] = {node: nodeName, distance: nodeDistance};
+      console.log("Routing Table\n", routingTable);
   });
   //handle sendMessage event
   socket.on("sendMessage", function(message, from, to) {
@@ -65,6 +65,20 @@ io.on('connection', function(socket){
         console.log("Message forwarded by server to ", to);
         cleintsMap[to].socket.emit("messageFromServer", data);
       }
+  });
+
+  //handle node disconnect
+  socket.on('disconnect', function() {
+    console.log('Disconnected form server!');
+    Object.keys(cleintsMap).forEach(key => {
+      if(cleintsMap[key].socket == socket) {
+        //delete node entry from clientsMap & routingTable
+        delete cleintsMap[key];
+        delete routingTable[key];
+        console.log("Deleting Node ", key);
+        console.log("Updated Routing Table\n", routingTable);
+      }
+    });
   });
 
 });
