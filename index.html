@@ -30,12 +30,16 @@
           <h3>Send Message</h3>
         <form action="">
           <div class="form-group">
-            <label for="exampleInputEmail1">Message Text:</label>
+            <label>Message Text:</label>
             <input type="text" class="form-control" id="messageText" placeholder="Type some message.." />
           </div>
           <div class="form-group">
-            <label for="exampleInputPassword1">Send To:</label>
+            <label>Send To:</label>
             <input type="text" class="form-control" id="messageTo" placeholder="A" />
+          </div>
+          <div class="form-group">
+            <label>Send File:</label>
+            <input type="file" class="form-control" id="file"/>
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
@@ -48,6 +52,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io-stream.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
       $(function() {
@@ -58,10 +63,20 @@
         //send echo message to server with node details
         socket.emit('helloFromClient', from, nodeDistance);
 
+        //upload files
+        $('#file').change(function(e) {
+          var file = e.target.files[0];
+          var stream = ss.createStream();
+          let to = $('#messageTo').val();
+          ss(socket).emit('sendFile', stream, {size: file.size, name: file.name, from: from, to: to});
+          ss.createBlobReadStream(file).pipe(stream);
+        });
+
         //recieve message from server
         socket.on('messageFromServer', function(data) {
             console.log(data);
-            $('#pastMessages').append(`<li>${data.message}, By ${data.from}</li>`);
+            let date = new Date();
+            $('#pastMessages').append(`<li><strong>${data.message}</strong>, <i>By</i> <strong>${data.from}</strong> <br> <i>At-<small>${date.toString()}</small></i></li>`);
         });
         
         //send message to destination node via server
@@ -88,10 +103,11 @@
       }
       .formContainer {
         width: 300px;
-        height: 300px;
+        height: 380px;
         border: 2px solid;
         padding: 20px;
         border-radius: 10px;
+        overflow: scroll;
       };
     </style>
   </body>
