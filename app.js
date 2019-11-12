@@ -13,7 +13,7 @@ app.get('/*', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
-//sotres client socket address
+//stores client socket address
 let cleintsMap = {};
 let routingTable = {};
 
@@ -50,6 +50,7 @@ io.on('connection', function(socket){
       routingTable[nodeName] = {node: nodeName, distance: nodeDistance};
       console.log("Routing Table\n", routingTable);
   });
+
   //handle sendMessage event
   socket.on("sendMessage", function(message, from, to) {
       console.log("NewMessage ", message, " from ", from, " to ", to);
